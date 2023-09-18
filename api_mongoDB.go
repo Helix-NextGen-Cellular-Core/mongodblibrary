@@ -46,6 +46,26 @@ func SetMongoDB(setdbName string, url string) {
 	Client = client
 	dbName = setdbName
 }
+func SetMongoDBWithPoolSize(setdbName string, url string, minPoolSize uint64, maxPoolSize uint64) {
+
+	if Client != nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	opts := options.Client().ApplyURI(url)
+	if minPoolSize > 0 && maxPoolSize > 0 {
+		opts.SetMinPoolSize(minPoolSize)
+		opts.SetMaxPoolSize(maxPoolSize)
+	}
+	client, err := mongo.Connect(ctx, opts)
+	defer cancel()
+	if err != nil {
+		//defer cancel()
+		logger.MongoDBLog.Println("SetMongoDB: Mongo connect failed for url (", url, ") : ", err.Error())
+	}
+	Client = client
+	dbName = setdbName
+}
 
 func RestfulAPIGetOne(collName string, filter bson.M) map[string]interface{} {
 	st := time.Now()
