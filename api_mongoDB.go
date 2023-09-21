@@ -68,17 +68,17 @@ func SetMongoDBWithPoolSize(setdbName string, url string, minPoolSize uint64, ma
 }
 
 func RestfulAPIGetOne(collName string, filter bson.M) map[string]interface{} {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var result map[string]interface{}
 	collection.FindOne(context.TODO(), filter).Decode(&result)
-	logger.MongoDBLog.Println("MongoDB RestfulAPIGetOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+	// logger.MongoDBLog.Println("MongoDB RestfulAPIGetOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 	return result
 }
 
 func RestfulAPIGetMany(collName string, filter bson.M) []map[string]interface{} {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var resultArray []map[string]interface{}
@@ -102,14 +102,14 @@ func RestfulAPIGetMany(collName string, filter bson.M) []map[string]interface{} 
 	if err := cur.Err(); err != nil {
 		logger.MongoDBLog.Println("RestfulAPIGetMany : Cursor read error for collection (", collName, ") : ", err)
 	}
-	logger.MongoDBLog.Println("MongoDB RestfulAPIGetMany ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+	// logger.MongoDBLog.Println("MongoDB RestfulAPIGetMany ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 	return resultArray
 
 }
 
 /* Get unique identity from counter collection. */
 func GetUniqueIdentity(idName string) int32 {
-	st := time.Now()
+	// st := time.Now()
 	counterCollection := Client.Database(dbName).Collection("counter")
 
 	counterFilter := bson.M{}
@@ -132,7 +132,7 @@ func GetUniqueIdentity(idName string) int32 {
 			count.Decode(&data)
 			decodedCount := data["count"].(int32)
 
-			logger.MongoDBLog.Println("MongoDB GetUniqueIdentity ", time.Since(st).Nanoseconds(), " idName:", idName)
+			// logger.MongoDBLog.Println("MongoDB GetUniqueIdentity ", time.Since(st).Nanoseconds(), " idName:", idName)
 			return decodedCount
 		}
 	}
@@ -429,7 +429,7 @@ func PutOneCustomDataStructure(collName string, filter bson.M, putData interface
 }
 
 func CreateIndex(collName string, keyField string) (bool, error) {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	index := mongo.IndexModel{
@@ -437,14 +437,15 @@ func CreateIndex(collName string, keyField string) (bool, error) {
 		Options: options.Index().SetUnique(true),
 	}
 
-	idx, err := collection.Indexes().CreateOne(context.Background(), index)
+	// idx, err := collection.Indexes().CreateOne(context.Background(), index)
+	_, err := collection.Indexes().CreateOne(context.Background(), index)
 	if err != nil {
 		logger.MongoDBLog.Error("Create Index failed : ", keyField, err)
 		return false, err
 	}
 
 	// logger.MongoDBLog.Println("Created index : ", idx, " on keyField : ", keyField, " for Collection : ", collName)
-	logger.MongoDBLog.Println("MongoDB CreateIndex ", time.Since(st).Nanoseconds(), " ", idx, " on keyField : ", keyField, " for Collection : ", collName)
+	// logger.MongoDBLog.Println("MongoDB CreateIndex ", time.Since(st).Nanoseconds(), " ", idx, " on keyField : ", keyField, " for Collection : ", collName)
 
 	return true, nil
 }
@@ -604,7 +605,7 @@ func RestfulAPIPutOneTimeout(collName string, filter bson.M, putData map[string]
 }
 
 func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interface{}) bool {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var checkItem map[string]interface{}
@@ -612,11 +613,11 @@ func RestfulAPIPutOne(collName string, filter bson.M, putData map[string]interfa
 
 	if checkItem == nil {
 		collection.InsertOne(context.TODO(), putData)
-		logger.MongoDBLog.Println("MongoDB RestfulAPIPutOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIPutOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		return false
 	} else {
 		collection.UpdateOne(context.TODO(), filter, bson.M{"$set": putData})
-		logger.MongoDBLog.Println("MongoDB RestfulAPIPutOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIPutOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		return true
 	}
 }
@@ -661,11 +662,11 @@ func RestfulAPIPutMany(collName string, filterArray []bson.M, putDataArray []map
 }
 
 func RestfulAPIDeleteOne(collName string, filter bson.M) {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	collection.DeleteOne(context.TODO(), filter)
-	logger.MongoDBLog.Println("MongoDB RestfulAPIDeleteOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+	// logger.MongoDBLog.Println("MongoDB RestfulAPIDeleteOne ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 }
 
 func RestfulAPIDeleteMany(collName string, filter bson.M) {
@@ -675,7 +676,7 @@ func RestfulAPIDeleteMany(collName string, filter bson.M) {
 }
 
 func RestfulAPIMergePatch(collName string, filter bson.M, patchData map[string]interface{}) bool {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var originalData map[string]interface{}
@@ -701,13 +702,13 @@ func RestfulAPIMergePatch(collName string, filter bson.M, patchData map[string]i
 
 		json.Unmarshal(modifiedAlternative, &modifiedData)
 		collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
-		logger.MongoDBLog.Println("MongoDB RestfulAPIMergePatch ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIMergePatch ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		return true
 	}
 }
 
 func RestfulAPIJSONPatch(collName string, filter bson.M, patchJSON []byte) bool {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var originalData map[string]interface{}
@@ -733,14 +734,14 @@ func RestfulAPIJSONPatch(collName string, filter bson.M, patchJSON []byte) bool 
 
 		json.Unmarshal(modified, &modifiedData)
 		collection.UpdateOne(context.TODO(), filter, bson.M{"$set": modifiedData})
-		logger.MongoDBLog.Println("MongoDB RestfulAPIJSONPatch ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIJSONPatch ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		return true
 	}
 
 }
 
 func RestfulAPIJSONPatchExtend(collName string, filter bson.M, patchJSON []byte, dataName string) bool {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var originalDataCover map[string]interface{}
@@ -767,24 +768,24 @@ func RestfulAPIJSONPatchExtend(collName string, filter bson.M, patchJSON []byte,
 		var modifiedData map[string]interface{}
 		json.Unmarshal(modified, &modifiedData)
 		collection.UpdateOne(context.TODO(), filter, bson.M{"$set": bson.M{dataName: modifiedData}})
-		logger.MongoDBLog.Println("MongoDB RestfulAPIJSONPatchExtend ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIJSONPatchExtend ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		return true
 	}
 }
 
 func RestfulAPIPost(collName string, filter bson.M, postData map[string]interface{}) bool {
-	st := time.Now()
+	// st := time.Now()
 	collection := Client.Database(dbName).Collection(collName)
 
 	var checkItem map[string]interface{}
 	err := collection.FindOne(context.TODO(), filter).Decode(&checkItem)
 	if err != nil {
-		logger.MongoDBLog.Println("item not found: ", err)
+		// logger.MongoDBLog.Println("item not found: ", err)
 	}
 
 	if checkItem == nil {
 		_, err := collection.InsertOne(context.TODO(), postData)
-		logger.MongoDBLog.Println("MongoDB RestfulAPIPost ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIPostI ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		if err != nil {
 			logger.MongoDBLog.Println("insert failed : ", err)
 			return false
@@ -792,7 +793,7 @@ func RestfulAPIPost(collName string, filter bson.M, postData map[string]interfac
 		return false
 	} else {
 		_, err := collection.UpdateOne(context.TODO(), filter, bson.M{"$set": postData})
-		logger.MongoDBLog.Println("MongoDB RestfulAPIPost ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
+		// logger.MongoDBLog.Println("MongoDB RestfulAPIPostU ", time.Since(st).Nanoseconds(), " colName:", collName, " filter:", filter)
 		if err != nil {
 			logger.MongoDBLog.Println("update failed : ", err)
 			return false
