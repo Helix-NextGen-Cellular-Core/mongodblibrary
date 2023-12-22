@@ -1,4 +1,4 @@
-module github.com/mbilal92/MongoDBLibrary
+module github.com/omec-project/MongoDBLibrary
 
 go 1.14
 
